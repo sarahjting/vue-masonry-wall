@@ -11,12 +11,14 @@ const props = withDefaults(
     gap?: number
     rtl?: boolean
     ssrColumns?: number
+    container?: Element
   }>(),
   {
     columnWidth: 400,
     gap: 0,
     rtl: false,
     ssrColumns: 0,
+    container: null,
   }
 )
 
@@ -25,7 +27,7 @@ const emit = defineEmits<{
   (event: 'redrawSkip'): void
 }>()
 
-const { columnWidth, items, gap, rtl, ssrColumns } = toRefs(props)
+const { columnWidth, items, gap, rtl, ssrColumns, container } = toRefs(props)
 const columns = ref<Column[]>([])
 const wall = ref<HTMLDivElement>() as Ref<HTMLDivElement>
 
@@ -73,9 +75,17 @@ async function redraw(force = false) {
     return
   }
   columns.value = createColumns(columnCount())
-  const scrollY = window.scrollY
+
+  const scrollY = container.value?.scrollTop || window.scrollY
+
   await fillColumns(0)
-  window.scrollTo({ top: scrollY })
+
+  if (container.value) {
+    container.value.scrollTop = scrollY
+  } else {
+    window.scrollTo({ top: scrollY })
+  }
+
   emit('redraw')
 }
 
